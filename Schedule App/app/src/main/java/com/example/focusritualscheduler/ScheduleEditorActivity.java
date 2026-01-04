@@ -1,9 +1,12 @@
 package com.example.focusritualscheduler;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -38,7 +41,10 @@ public class ScheduleEditorActivity extends AppCompatActivity {
 
         btnAddClass.setOnClickListener(v -> addClass());
 
-        // Long click → Show confirmation dialog
+        // Normal click → Edit
+        lvClasses.setOnItemClickListener((parent, view, position, id) -> editClass(position));
+
+        // Long click → Delete with confirmation
         lvClasses.setOnItemLongClickListener((parent, view, position, id) -> {
             new AlertDialog.Builder(this)
                     .setTitle("Delete Class")
@@ -53,7 +59,7 @@ public class ScheduleEditorActivity extends AppCompatActivity {
             return true;
         });
 
-        // Fade-in animation
+        // Fade-in
         findViewById(R.id.content_layout).setAlpha(0f);
         findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
     }
@@ -75,13 +81,69 @@ public class ScheduleEditorActivity extends AppCompatActivity {
 
         classList.add(entry);
         adapter.notifyDataSetChanged();
+        clearInputs();
+        Toast.makeText(this, "Class added!", Toast.LENGTH_SHORT).show();
+    }
 
+    private void editClass(int position) {
+        String currentEntry = classList.get(position);
+
+        // Parse current values (simple string split)
+        String[] lines = currentEntry.split("\n");
+        String[] firstLine = lines[0].split(" \\| ");
+        String day = firstLine[0].trim();
+        String subject = firstLine[1].trim();
+        String time = lines[1].trim(); // "09:00 - 10:30"
+        String[] times = time.split(" - ");
+        String start = times[0].trim();
+        String end = times[1].trim();
+        String location = lines.length > 2 ? lines[2].replace("Room: ", "").trim() : "";
+
+        // Inflate custom edit dialog
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_class, null);
+        EditText editDay = dialogView.findViewById(R.id.edit_day);
+        EditText editStart = dialogView.findViewById(R.id.edit_start_time);
+        EditText editEnd = dialogView.findViewById(R.id.edit_end_time);
+        EditText editSubject = dialogView.findViewById(R.id.edit_subject);
+        EditText editLocation = dialogView.findViewById(R.id.edit_location);
+
+        editDay.setText(day);
+        editStart.setText(start);
+        editEnd.setText(end);
+        editSubject.setText(subject);
+        editLocation.setText(location);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Edit Class")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String newDay = editDay.getText().toString().trim();
+                    String newStart = editStart.getText().toString().trim();
+                    String newEnd = editEnd.getText().toString().trim();
+                    String newSubject = editSubject.getText().toString().trim();
+                    String newLocation = editLocation.getText().toString().trim();
+
+                    if (newDay.isEmpty() || newStart.isEmpty() || newEnd.isEmpty() || newSubject.isEmpty()) {
+                        Toast.makeText(this, "Please fill required fields", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String newEntry = newDay + " | " + newSubject + "\n" + newStart + " - " + newEnd +
+                            (newLocation.isEmpty() ? "" : "\nRoom: " + newLocation);
+
+                    classList.set(position, newEntry);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Class updated!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void clearInputs() {
         etDay.setText("");
         etStartTime.setText("");
         etEndTime.setText("");
         etSubject.setText("");
         etLocation.setText("");
-
-        Toast.makeText(this, "Class added!", Toast.LENGTH_SHORT).show();
     }
 }

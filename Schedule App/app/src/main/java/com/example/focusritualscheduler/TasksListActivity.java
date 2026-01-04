@@ -1,6 +1,8 @@
 package com.example.focusritualscheduler;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,7 +38,10 @@ public class TasksListActivity extends AppCompatActivity {
 
         btnAddTask.setOnClickListener(v -> addTask());
 
-        // Long click → Show confirmation dialog
+        // Normal click → Edit
+        lvTasks.setOnItemClickListener((parent, view, position, id) -> editTask(position));
+
+        // Long click → Delete
         lvTasks.setOnItemLongClickListener((parent, view, position, id) -> {
             new AlertDialog.Builder(this)
                     .setTitle("Delete Task")
@@ -51,7 +56,6 @@ public class TasksListActivity extends AppCompatActivity {
             return true;
         });
 
-        // Fade-in animation
         findViewById(R.id.content_layout).setAlpha(0f);
         findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
     }
@@ -78,11 +82,56 @@ public class TasksListActivity extends AppCompatActivity {
 
         taskList.add(entry);
         adapter.notifyDataSetChanged();
+        clearInputs();
+        Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
+    }
 
+    private void editTask(int position) {
+        String current = taskList.get(position);
+        String[] lines = current.split("\n");
+        String name = lines[0].trim();
+        String[] details = lines[1].split(" \\| ");
+        String timeStr = details[0].replace("⏱ ", "").replace(" mins", "").trim();
+        String priorityStr = details[1].replace("Priority: ", "").trim();
+
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_task, null);
+        EditText editName = dialogView.findViewById(R.id.edit_task_name);
+        EditText editTime = dialogView.findViewById(R.id.edit_estimated_time);
+        EditText editPriority = dialogView.findViewById(R.id.edit_priority);
+
+        editName.setText(name);
+        editTime.setText(timeStr);
+        editPriority.setText(priorityStr);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Edit Task")
+                .setView(dialogView)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    String newName = editName.getText().toString().trim();
+                    String newTimeStr = editTime.getText().toString().trim();
+                    String newPriorityStr = editPriority.getText().toString().trim();
+
+                    if (newName.isEmpty() || newTimeStr.isEmpty() || newPriorityStr.isEmpty()) {
+                        Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    int newTime = Integer.parseInt(newTimeStr);
+                    int newPriority = Integer.parseInt(newPriorityStr);
+
+                    String newEntry = newName + "\n⏱ " + newTime + " mins | Priority: " + newPriority;
+
+                    taskList.set(position, newEntry);
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void clearInputs() {
         etTaskName.setText("");
         etEstimatedTime.setText("");
         etPriority.setText("");
-
-        Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
     }
 }

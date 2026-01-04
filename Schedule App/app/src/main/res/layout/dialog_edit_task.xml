@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <EditText
+        android:id="@+id/edit_task_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Task Name"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edit_estimated_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Estimated Time (mins)"
+        android:inputType="number"
+        android:layout_marginBottom="12dp" />
+
+    <EditText
+        android:id="@+id/edit_priority"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Priority (1-5)"
+        android:inputType="number" />
+
+</LinearLayout>
