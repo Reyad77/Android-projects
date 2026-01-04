@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnBuildRitual = findViewById(R.id.btn_build_ritual);
         Button btnStartSession = findViewById(R.id.btn_start_session);
 
-//        btnEditSchedule.setOnClickListener(v -> startActivity(new Intent(this, ScheduleEditorActivity.class)));
+        btnEditSchedule.setOnClickListener(v -> startActivity(new Intent(this, ScheduleEditorActivity.class)));
 //        btnWeeklyTasks.setOnClickListener(v -> startActivity(new Intent(this, TasksListActivity.class)));
 //        btnGeneratePlan.setOnClickListener(v -> startActivity(new Intent(this, StudyPlanActivity.class)));
 //        btnBuildRitual.setOnClickListener(v -> startActivity(new Intent(this, RitualBuilderActivity.class)));
