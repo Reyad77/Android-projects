@@ -291,7 +291,7 @@ public class ScheduleEditorActivity extends AppCompatActivity {
                     nextClass.add(Calendar.WEEK_OF_YEAR, 1);
                 }
 
-                long triggerTime = System.currentTimeMillis() + (30 * 1000); // Fires in 30 seconds
+                long triggerTime = nextClass.getTimeInMillis() - (10 * 60 * 1000);
 
                 Intent intent = new Intent(this, AlarmReceiver.class);
                 intent.putExtra("subject", subject);

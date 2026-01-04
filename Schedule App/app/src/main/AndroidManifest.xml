@@ -30,6 +30,7 @@
         <activity android:name=".ScheduleEditorActivity" android:exported="false" />
         <activity android:name=".TasksListActivity" android:exported="false" />
         <activity android:name=".StudyPlanActivity" android:exported="false" />
+        <activity android:name=".RitualBuilderActivity" android:exported="false" />
 
         <receiver
             android:name=".AlarmReceiver"
