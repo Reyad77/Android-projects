@@ -19,7 +19,7 @@ public class ScheduleEditorActivity extends AppCompatActivity {
     private Button btnAddClass;
     private ListView lvClasses;
 
-    private ArrayList<String> classList;
+    public static ArrayList<String> classList = new ArrayList<>(); // Made public static for demo sharing
     private ArrayAdapter<String> adapter;
 
     @Override
@@ -35,7 +35,6 @@ public class ScheduleEditorActivity extends AppCompatActivity {
         btnAddClass = findViewById(R.id.btn_add_class);
         lvClasses = findViewById(R.id.lv_classes);
 
-        classList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, classList);
         lvClasses.setAdapter(adapter);
 

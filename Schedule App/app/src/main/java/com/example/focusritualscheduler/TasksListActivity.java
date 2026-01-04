@@ -18,7 +18,7 @@ public class TasksListActivity extends AppCompatActivity {
     private Button btnAddTask;
     private ListView lvTasks;
 
-    private ArrayList<String> taskList;
+    public static ArrayList<String> taskList = new ArrayList<>(); // Made public static for demo sharing
     private ArrayAdapter<String> adapter;
 
     @Override
@@ -32,7 +32,6 @@ public class TasksListActivity extends AppCompatActivity {
         btnAddTask = findViewById(R.id.btn_add_task);
         lvTasks = findViewById(R.id.lv_tasks);
 
-        taskList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, taskList);
         lvTasks.setAdapter(adapter);
 
