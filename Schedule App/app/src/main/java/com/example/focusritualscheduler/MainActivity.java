@@ -11,7 +11,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        findViewById(R.id.content_layout).setAlpha(0f);
+        findViewById(R.id.content_layout).animate().alpha(1f).setDuration(1000).start();
         Button btnEditSchedule = findViewById(R.id.btn_edit_schedule);
         Button btnWeeklyTasks = findViewById(R.id.btn_weekly_tasks);
         Button btnGeneratePlan = findViewById(R.id.btn_generate_plan);

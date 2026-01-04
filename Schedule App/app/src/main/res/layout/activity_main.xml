@@ -1,34 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Background Image (Your Sticky Notes Photo) -->
+    <!-- Futuristic Background -->
     <ImageView
-        android:id="@+id/background_image"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/mainbackground"
+        android:src="@drawable/bg_futuristic_launch"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Soft Overlay for Readability -->
+    <!-- Dark Overlay for Neon Pop -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#B3FFFFFF"
+        android:background="#99000000"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Centered Content (True Middle of Screen) -->
+    <!-- Centered Content -->
     <LinearLayout
-        android:id="@+id/content_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -37,117 +36,125 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.5">  <!-- This centers vertically -->
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- App Title -->
+        <!-- Futuristic Title with Glow -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Focus Ritual Scheduler"
-            android:textSize="32sp"
+            android:textSize="34sp"
             android:textStyle="bold"
-            android:textColor="#1565C0"
-            android:layout_marginBottom="60dp"
-            android:shadowColor="#40000000"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:shadowRadius="4" />
+            android:textColor="#00E5FF"
+            android:shadowColor="#00E5FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="20"
+            android:layout_marginBottom="60dp" />
 
-        <!-- Elevated Card Buttons -->
+        <!-- Neon Glowing Buttons -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="#FFFFFF">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#00E5FF"
+            app:strokeWidth="2dp"
+            app:cardBackgroundColor="#1A000000">
 
             <Button
                 android:id="@+id/btn_edit_schedule"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="70dp"
                 android:text="Edit Class Schedule"
-                android:textSize="19sp"
-                android:textColor="#1565C0"
-                android:backgroundTint="#E3F2FD"
+                android:textSize="20sp"
+                android:textColor="#00E5FF"
+                android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="#FFFFFF">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#00E5FF"
+            app:strokeWidth="2dp"
+            app:cardBackgroundColor="#1A000000">
 
             <Button
                 android:id="@+id/btn_weekly_tasks"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="70dp"
                 android:text="Weekly Tasks"
-                android:textSize="19sp"
-                android:textColor="#1565C0"
-                android:backgroundTint="#E3F2FD"
+                android:textSize="20sp"
+                android:textColor="#00E5FF"
+                android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="#FFFFFF">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#00E5FF"
+            app:strokeWidth="2dp"
+            app:cardBackgroundColor="#1A000000">
 
             <Button
                 android:id="@+id/btn_generate_plan"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="70dp"
                 android:text="Generate Study Plan"
-                android:textSize="19sp"
-                android:textColor="#1565C0"
-                android:backgroundTint="#E3F2FD"
+                android:textSize="20sp"
+                android:textColor="#00E5FF"
+                android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="18dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp"
-            app:cardBackgroundColor="#FFFFFF">
+            android:layout_marginBottom="20dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:strokeColor="#00E5FF"
+            app:strokeWidth="2dp"
+            app:cardBackgroundColor="#1A000000">
 
             <Button
                 android:id="@+id/btn_build_ritual"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="70dp"
                 android:text="Build Focus Ritual"
-                android:textSize="19sp"
-                android:textColor="#1565C0"
-                android:backgroundTint="#E3F2FD"
+                android:textSize="20sp"
+                android:textColor="#00E5FF"
+                android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Highlighted Main Action Button -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="12dp"
-            app:cardBackgroundColor="#4FC3F7">
+            app:cardCornerRadius="24dp"
+            app:cardElevation="14dp"
+            app:strokeColor="#00E5FF"
+            app:strokeWidth="3dp"
+            app:cardBackgroundColor="#1A000000">
 
             <Button
                 android:id="@+id/btn_start_session"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:text="Start Focus Session"
-                android:textSize="22sp"
+                android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#4FC3F7"
+                android:textColor="#00E5FF"
+                android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
 
