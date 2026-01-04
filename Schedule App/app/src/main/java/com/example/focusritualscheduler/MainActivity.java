@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnEditSchedule.setOnClickListener(v -> startActivity(new Intent(this, ScheduleEditorActivity.class)));
         btnWeeklyTasks.setOnClickListener(v -> startActivity(new Intent(this, TasksListActivity.class)));
-//        btnGeneratePlan.setOnClickListener(v -> startActivity(new Intent(this, StudyPlanActivity.class)));
+        btnGeneratePlan.setOnClickListener(v -> startActivity(new Intent(this, StudyPlanActivity.class)));
 //        btnBuildRitual.setOnClickListener(v -> startActivity(new Intent(this, RitualBuilderActivity.class)));
 //        btnStartSession.setOnClickListener(v -> startActivity(new Intent(this, TimerActivity.class)));
     }
