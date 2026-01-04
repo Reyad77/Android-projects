@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
@@ -23,7 +24,6 @@ public class ScheduleEditorActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_schedule_editor);
 
-        // Find views
         etDay = findViewById(R.id.et_day);
         etStartTime = findViewById(R.id.et_start_time);
         etEndTime = findViewById(R.id.et_end_time);
@@ -32,15 +32,28 @@ public class ScheduleEditorActivity extends AppCompatActivity {
         btnAddClass = findViewById(R.id.btn_add_class);
         lvClasses = findViewById(R.id.lv_classes);
 
-        // Setup list
         classList = new ArrayList<>();
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, classList);
         lvClasses.setAdapter(adapter);
 
-        // Add button click
         btnAddClass.setOnClickListener(v -> addClass());
 
-        // Fade-in animation (same as main)
+        // Long click → Show confirmation dialog
+        lvClasses.setOnItemLongClickListener((parent, view, position, id) -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Class")
+                    .setMessage("Are you sure you want to delete this class?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        classList.remove(position);
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(this, "Class deleted", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+            return true;
+        });
+
+        // Fade-in animation
         findViewById(R.id.content_layout).setAlpha(0f);
         findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
     }
@@ -63,7 +76,6 @@ public class ScheduleEditorActivity extends AppCompatActivity {
         classList.add(entry);
         adapter.notifyDataSetChanged();
 
-        // Clear inputs
         etDay.setText("");
         etStartTime.setText("");
         etEndTime.setText("");
