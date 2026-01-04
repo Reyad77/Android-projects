@@ -1,19 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="#F5F5F5">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="Focus Ritual Scheduler"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#2E7D32"
+        android:layout_marginBottom="50dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/btn_edit_schedule"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Edit Class Schedule"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <Button
+        android:id="@+id/btn_weekly_tasks"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Weekly Tasks"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <Button
+        android:id="@+id/btn_generate_plan"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Generate Study Plan"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <Button
+        android:id="@+id/btn_build_ritual"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Build Focus Ritual"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+    <Button
+        android:id="@+id/btn_start_session"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Start Focus Session"
+        android:textSize="18sp"
+        style="@style/Widget.MaterialComponents.Button" />
+
+</LinearLayout>
