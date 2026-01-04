@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Your Sticky-Note Background -->
+    <!-- Background -->
     <ImageView
         android:id="@+id/background_image"
         android:layout_width="0dp"
@@ -16,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Light Overlay -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -26,7 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Scrollable Centered Content -->
+    <!-- Full-screen ScrollView -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -43,7 +42,7 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Page Title -->
+            <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -57,7 +56,7 @@
                 android:shadowDy="2"
                 android:shadowRadius="4" />
 
-            <!-- Input Fields in White Card -->
+            <!-- Input Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -125,7 +124,7 @@
                 android:layout_marginBottom="30dp"
                 style="?android:attr/borderlessButtonStyle" />
 
-            <!-- List of Added Classes -->
+            <!-- Your Classes Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -135,15 +134,18 @@
                 android:textColor="#1565C0"
                 android:layout_marginBottom="16dp" />
 
+            <!-- ListView that fills remaining space -->
             <ListView
                 android:id="@+id/lv_classes"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="200dp"
                 android:layout_weight="1"
-            android:background="#FFFFFF"
-            android:padding="16dp"
-            android:divider="#E0E0E0"
-            android:dividerHeight="1dp" />
+                android:background="#FFFFFF"
+                android:clipToPadding="false"
+                android:divider="#E0E0E0"
+                android:dividerHeight="2dp"
+                android:minHeight="200dp"
+                android:padding="10dp" />
 
         </LinearLayout>
     </ScrollView>
