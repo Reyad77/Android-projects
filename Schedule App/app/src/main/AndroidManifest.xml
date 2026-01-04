@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".MainActivity" />
         <activity android:name=".ScheduleEditorActivity" />
+        <activity android:name=".TasksListActivity" />
     </application>
 
 </manifest>
