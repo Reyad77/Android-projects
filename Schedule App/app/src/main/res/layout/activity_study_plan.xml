@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Sticky-Note Background -->
+    <!-- Background -->
     <ImageView
         android:id="@+id/background_image"
         android:layout_width="0dp"
@@ -16,7 +16,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Light Overlay -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -26,7 +25,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -43,7 +41,6 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Title -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -57,7 +54,6 @@
                 android:shadowDy="2"
                 android:shadowRadius="4" />
 
-            <!-- Generate Button -->
             <Button
                 android:id="@+id/btn_generate_plan"
                 android:layout_width="match_parent"
@@ -70,11 +66,10 @@
                 android:layout_marginBottom="30dp"
                 style="?android:attr/borderlessButtonStyle" />
 
-            <!-- Suggested Plan List -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Suggested Study Blocks"
+                android:text="Your Study Plan"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#1565C0"
@@ -87,7 +82,20 @@
                 android:background="#FFFFFF"
                 android:padding="16dp"
                 android:divider="#E0E0E0"
-                android:dividerHeight="1dp" />
+                android:dividerHeight="1dp"
+                android:choiceMode="multipleChoice"
+                android:layout_marginBottom="20dp"/>
+
+            <!-- Smart Delete Completed Button -->
+            <Button
+                android:id="@+id/btn_delete_completed"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:text="Delete Completed (0)"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#D32F2F"/>
 
         </LinearLayout>
     </ScrollView>

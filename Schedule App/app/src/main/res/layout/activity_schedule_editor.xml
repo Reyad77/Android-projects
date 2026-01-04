@@ -138,11 +138,12 @@
             <ListView
                 android:id="@+id/lv_classes"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:divider="#E0E0E0"
-                android:dividerHeight="1dp" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:divider="#E0E0E0"
+            android:dividerHeight="1dp" />
 
         </LinearLayout>
     </ScrollView>

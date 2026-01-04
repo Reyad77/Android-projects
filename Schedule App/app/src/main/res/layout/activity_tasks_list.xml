@@ -80,6 +80,14 @@
                         android:layout_marginBottom="12dp" />
 
                     <EditText
+                        android:id="@+id/et_due_day"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Due Day (e.g., Friday)"
+                        android:inputType="textCapWords"
+                        android:layout_marginBottom="12dp" />
+
+                    <EditText
                         android:id="@+id/et_estimated_time"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -125,11 +133,12 @@
             <ListView
                 android:id="@+id/lv_tasks"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:divider="#E0E0E0"
-                android:dividerHeight="1dp" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+            android:background="#FFFFFF"
+            android:padding="16dp"
+            android:divider="#E0E0E0"
+            android:dividerHeight="1dp" />
 
         </LinearLayout>
     </ScrollView>
