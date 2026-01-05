@@ -2,18 +2,18 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_futuristic_launch">  <!-- Your sticky-note background -->
+    android:background="@drawable/mainbackground">  <!-- Your sticky-note background -->
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Focus Ritual\nScheduler"
+        android:text="Student Schedule Manager"
         android:textSize="42sp"
         android:textStyle="bold"
-        android:textColor="#ffffff"
+        android:textColor="#000000"
         android:gravity="center"
         android:lineSpacingExtra="8dp"
-        android:shadowColor="#f5bf03"
+        android:shadowColor="#ffffff"
         android:shadowDx="4"
         android:shadowDy="4"
         android:shadowRadius="8"

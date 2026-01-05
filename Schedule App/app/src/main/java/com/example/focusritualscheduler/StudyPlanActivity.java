@@ -45,7 +45,6 @@ public class StudyPlanActivity extends AppCompatActivity {
         btnDeleteCompleted = findViewById(R.id.btn_delete_completed);
         lvStudyPlan = findViewById(R.id.lv_study_plan);
 
-        // Use built-in layout that works perfectly with Material themes
         planAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, studyPlan);
         lvStudyPlan.setAdapter(planAdapter);
         lvStudyPlan.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -53,7 +52,8 @@ public class StudyPlanActivity extends AppCompatActivity {
         lvStudyPlan.setOnItemClickListener((parent, view, position, id) -> {
             if (position < checkedItems.size()) {
                 checkedItems.set(position, !checkedItems.get(position));
-                updateDeleteButton();
+                planAdapter.notifyDataSetChanged();
+                updateDeleteButton();  // Update every time checkbox changes
                 savePlanToFile();
             }
         });
@@ -62,9 +62,8 @@ public class StudyPlanActivity extends AppCompatActivity {
         btnDeleteCompleted.setOnClickListener(v -> deleteCompleted());
 
         loadPlanFromFile();
-        updateDeleteButton();
+        updateDeleteButton();  // Critical: Set correct visibility on startup
 
-        // Fade-in animation
         View content = findViewById(R.id.content_layout);
         if (content != null) {
             content.setAlpha(0f);
@@ -130,7 +129,7 @@ public class StudyPlanActivity extends AppCompatActivity {
         }
 
         planAdapter.notifyDataSetChanged();
-        updateDeleteButton();
+        updateDeleteButton();  // Update after generating new plan
         savePlanToFile();
         Toast.makeText(this, "Study plan generated!", Toast.LENGTH_SHORT).show();
     }
@@ -143,7 +142,7 @@ public class StudyPlanActivity extends AppCompatActivity {
             }
         }
         planAdapter.notifyDataSetChanged();
-        updateDeleteButton();
+        updateDeleteButton();  // Update after deletion
         savePlanToFile();
         Toast.makeText(this, "Completed tasks deleted!", Toast.LENGTH_SHORT).show();
     }
@@ -237,6 +236,7 @@ public class StudyPlanActivity extends AppCompatActivity {
             // No saved plan yet
         }
         planAdapter.notifyDataSetChanged();
+        updateDeleteButton();  // Critical: Update visibility after loading
     }
 
     private static class Task {

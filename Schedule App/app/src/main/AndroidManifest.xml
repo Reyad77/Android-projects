@@ -31,6 +31,7 @@
         <activity android:name=".TasksListActivity" android:exported="false" />
         <activity android:name=".StudyPlanActivity" android:exported="false" />
         <activity android:name=".RitualBuilderActivity" android:exported="false" />
+        <activity android:name=".TimerActivity" />
 
         <receiver
             android:name=".AlarmReceiver"

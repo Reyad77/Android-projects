@@ -42,17 +42,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Focus Ritual Scheduler"
-            android:textSize="34sp"
-            android:textStyle="bold"
-            android:textColor="#ffffff"
+            android:layout_gravity="center"
+            android:layout_marginBottom="60dp"
             android:shadowColor="#000000"
             android:shadowDx="0"
             android:shadowDy="0"
             android:shadowRadius="20"
-            android:layout_marginBottom="60dp"
+            android:text="Student Schedule Manager"
             android:textAlignment="center"
-            android:layout_gravity="center"/>
+            android:textColor="#ffffff"
+            android:textSize="34sp"
+            android:textStyle="bold" />
 
         <!-- Neon Glowing Buttons -->
         <com.google.android.material.card.MaterialCardView
@@ -66,13 +66,13 @@
 
             <Button
                 android:id="@+id/btn_edit_schedule"
+                style="?android:attr/borderlessButtonStyle"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
-                android:text="Edit Class Schedule"
-                android:textSize="20sp"
-                android:textColor="#000000"
                 android:backgroundTint="#00000000"
-                style="?android:attr/borderlessButtonStyle" />
+                android:text="Class Schedule"
+                android:textColor="#000000"
+                android:textSize="20sp" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
@@ -101,9 +101,8 @@
             android:layout_marginBottom="20dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="10dp"
-            app:strokeColor="#00E5FF"
-            app:strokeWidth="2dp"
-            app:cardBackgroundColor="#1A000000">
+            app:strokeColor="#000000"
+            app:strokeWidth="2dp">
 
             <Button
                 android:id="@+id/btn_generate_plan"
@@ -111,7 +110,7 @@
                 android:layout_height="70dp"
                 android:text="Generate Study Plan"
                 android:textSize="20sp"
-                android:textColor="#00E5FF"
+                android:textColor="#000000"
                 android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
@@ -122,17 +121,16 @@
             android:layout_marginBottom="20dp"
             app:cardCornerRadius="20dp"
             app:cardElevation="10dp"
-            app:strokeColor="#00E5FF"
-            app:strokeWidth="2dp"
-            app:cardBackgroundColor="#1A000000">
+            app:strokeColor="#000000"
+            app:strokeWidth="2dp">
 
             <Button
                 android:id="@+id/btn_build_ritual"
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
-                android:text="Build Focus Ritual"
+                android:text="TO-DO List"
                 android:textSize="20sp"
-                android:textColor="#00E5FF"
+                android:textColor="#000000"
                 android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
         </com.google.android.material.card.MaterialCardView>
@@ -142,20 +140,18 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="24dp"
             app:cardElevation="14dp"
-            app:strokeColor="#00E5FF"
-            app:strokeWidth="3dp"
-            app:cardBackgroundColor="#1A000000">
-
+            app:strokeColor="#000000"
+            app:strokeWidth="3dp">
             <Button
                 android:id="@+id/btn_start_session"
                 android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:text="Start Focus Session"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="#00E5FF"
+                android:layout_height="70dp"
+                android:text="Start Timer"
+                android:textSize="20sp"
+                android:textColor="#000000"
                 android:backgroundTint="#00000000"
                 style="?android:attr/borderlessButtonStyle" />
+
         </com.google.android.material.card.MaterialCardView>
 
     </LinearLayout>
