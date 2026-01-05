@@ -15,13 +15,15 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
 public class TasksListActivity extends AppCompatActivity {
 
-    private EditText etTaskName, etEstimatedTime, etPriority, etDueDay;
+    private EditText etTaskName, etPriority, etDueDate;  // Changed to full date
     private Button btnAddTask;
     private ListView lvTasks;
 
@@ -37,9 +39,8 @@ public class TasksListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_tasks_list);
 
         etTaskName = findViewById(R.id.et_task_name);
-        etEstimatedTime = findViewById(R.id.et_estimated_time);
         etPriority = findViewById(R.id.et_priority);
-        etDueDay = findViewById(R.id.et_due_day); // New field
+        etDueDate = findViewById(R.id.et_due_day);  // Now due date as YYYY-MM-DD
         btnAddTask = findViewById(R.id.btn_add_task);
         lvTasks = findViewById(R.id.lv_tasks);
 
@@ -48,14 +49,12 @@ public class TasksListActivity extends AppCompatActivity {
 
         btnAddTask.setOnClickListener(v -> addTask());
 
-        // Normal click → Edit
         lvTasks.setOnItemClickListener((parent, view, position, id) -> editTask(position));
 
-        // Long click → Delete
         lvTasks.setOnItemLongClickListener((parent, view, position, id) -> {
             new AlertDialog.Builder(this)
                     .setTitle("Delete Task")
-                    .setMessage("Are you sure you want to delete this task?")
+                    .setMessage("Are you sure?")
                     .setPositiveButton("Yes", (dialog, which) -> {
                         taskList.remove(position);
                         adapter.notifyDataSetChanged();
@@ -70,44 +69,38 @@ public class TasksListActivity extends AppCompatActivity {
         findViewById(R.id.content_layout).setAlpha(0f);
         findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
 
-        // Load saved tasks
         loadTasksFromFile();
         adapter.notifyDataSetChanged();
     }
 
     private void addTask() {
         String name = etTaskName.getText().toString().trim();
-        String timeStr = etEstimatedTime.getText().toString().trim();
         String priorityStr = etPriority.getText().toString().trim();
-        String dueDay = etDueDay.getText().toString().trim();
+        String dueDate = etDueDate.getText().toString().trim();
 
-        if (name.isEmpty() || timeStr.isEmpty() || priorityStr.isEmpty() || dueDay.isEmpty()) {
+        if (name.isEmpty() || priorityStr.isEmpty() || dueDate.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        int time = Integer.parseInt(timeStr);
         int priority = Integer.parseInt(priorityStr);
-
         if (priority < 1 || priority > 5) {
-            Toast.makeText(this, "Priority must be 1-5", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Priority 1-5", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Validate due day
-        if (getDayOfWeekFromName(dueDay) == -1) {
-            Toast.makeText(this, "Invalid due day: '" + dueDay + "'. Use Monday to Sunday.", Toast.LENGTH_LONG).show();
+        if (!isValidDate(dueDate)) {
+            Toast.makeText(this, "Invalid due date (YYYY-MM-DD)", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String entry = name + "\nDue: " + dueDay + " | ⏱ " + time + " mins | Priority: " + priority;
+        String entry = name + "\nDue: " + dueDate + " | Priority: " + priority;
 
         taskList.add(entry);
         adapter.notifyDataSetChanged();
         clearInputs();
-        Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
-
         saveTasksToFile();
+        Toast.makeText(this, "Task added!", Toast.LENGTH_SHORT).show();
     }
 
     private void editTask(int position) {
@@ -115,50 +108,48 @@ public class TasksListActivity extends AppCompatActivity {
         String[] lines = current.split("\n");
         String name = lines[0].trim();
         String[] details = lines[1].split(" \\| ");
-        String dueDay = details[0].replace("Due: ", "").trim();
-        String timeStr = details[1].replace("⏱ ", "").replace(" mins", "").trim();
-        String priorityStr = details[2].replace("Priority: ", "").trim();
+        String dueDate = details[0].replace("Due: ", "").trim();
+        String priorityStr = details[1].replace("Priority: ", "").trim();
 
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_task, null);
         EditText editName = dialogView.findViewById(R.id.edit_task_name);
-        EditText editTime = dialogView.findViewById(R.id.edit_estimated_time);
+        EditText editDueDate = dialogView.findViewById(R.id.edit_due_day);
         EditText editPriority = dialogView.findViewById(R.id.edit_priority);
-        EditText editDueDay = dialogView.findViewById(R.id.edit_due_day); // New field
 
         editName.setText(name);
-        editTime.setText(timeStr);
+        editDueDate.setText(dueDate);
         editPriority.setText(priorityStr);
-        editDueDay.setText(dueDay);
 
         new AlertDialog.Builder(this)
                 .setTitle("Edit Task")
                 .setView(dialogView)
                 .setPositiveButton("Save", (dialog, which) -> {
                     String newName = editName.getText().toString().trim();
-                    String newTimeStr = editTime.getText().toString().trim();
+                    String newDueDate = editDueDate.getText().toString().trim();
                     String newPriorityStr = editPriority.getText().toString().trim();
-                    String newDueDay = editDueDay.getText().toString().trim();
 
-                    if (newName.isEmpty() || newTimeStr.isEmpty() || newPriorityStr.isEmpty() || newDueDay.isEmpty()) {
+                    if (newName.isEmpty() || newDueDate.isEmpty() || newPriorityStr.isEmpty()) {
                         Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    int newTime = Integer.parseInt(newTimeStr);
                     int newPriority = Integer.parseInt(newPriorityStr);
-
-                    if (getDayOfWeekFromName(newDueDay) == -1) {
-                        Toast.makeText(this, "Invalid due day: '" + newDueDay + "'. Use Monday to Sunday.", Toast.LENGTH_LONG).show();
+                    if (newPriority < 1 || newPriority > 5) {
+                        Toast.makeText(this, "Priority 1-5", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    String newEntry = newName + "\nDue: " + newDueDay + " | ⏱ " + newTime + " mins | Priority: " + newPriority;
+                    if (!isValidDate(newDueDate)) {
+                        Toast.makeText(this, "Invalid due date (YYYY-MM-DD)", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String newEntry = newName + "\nDue: " + newDueDate + " | Priority: " + newPriority;
 
                     taskList.set(position, newEntry);
                     adapter.notifyDataSetChanged();
-                    Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
-
                     saveTasksToFile();
+                    Toast.makeText(this, "Task updated!", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -166,18 +157,15 @@ public class TasksListActivity extends AppCompatActivity {
 
     private void clearInputs() {
         etTaskName.setText("");
-        etEstimatedTime.setText("");
         etPriority.setText("");
-        etDueDay.setText("");
+        etDueDate.setText("");
     }
 
     private void saveTasksToFile() {
-        try {
-            FileOutputStream fos = openFileOutput(FILENAME, MODE_PRIVATE);
+        try (FileOutputStream fos = openFileOutput(FILENAME, MODE_PRIVATE)) {
             for (String entry : taskList) {
                 fos.write((entry + SEPARATOR).getBytes());
             }
-            fos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -185,9 +173,8 @@ public class TasksListActivity extends AppCompatActivity {
 
     private void loadTasksFromFile() {
         taskList.clear();
-        try {
-            FileInputStream fis = openFileInput(FILENAME);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
+        try (FileInputStream fis = openFileInput(FILENAME);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
@@ -203,26 +190,19 @@ public class TasksListActivity extends AppCompatActivity {
             if (sb.length() > 0) {
                 taskList.add(sb.toString().trim());
             }
-            reader.close();
         } catch (Exception e) {
             // No file yet
         }
     }
 
-    // Helper method for day validation
-    private int getDayOfWeekFromName(String dayName) {
-        if (dayName == null || dayName.trim().isEmpty()) return -1;
-
-        String normalized = dayName.trim().toLowerCase(Locale.getDefault());
-
-        if (normalized.equals("monday")) return Calendar.MONDAY;
-        if (normalized.equals("tuesday")) return Calendar.TUESDAY;
-        if (normalized.equals("wednesday")) return Calendar.WEDNESDAY;
-        if (normalized.equals("thursday")) return Calendar.THURSDAY;
-        if (normalized.equals("friday")) return Calendar.FRIDAY;
-        if (normalized.equals("saturday")) return Calendar.SATURDAY;
-        if (normalized.equals("sunday")) return Calendar.SUNDAY;
-
-        return -1;
+    private boolean isValidDate(String dateStr) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        sdf.setLenient(false);
+        try {
+            sdf.parse(dateStr);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 }

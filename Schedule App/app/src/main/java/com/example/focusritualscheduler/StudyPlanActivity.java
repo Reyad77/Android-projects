@@ -2,34 +2,38 @@ package com.example.focusritualscheduler;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
+import android.view.ViewGroup;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Locale;
-import java.util.Map;
+import java.util.TreeMap;
 
 public class StudyPlanActivity extends AppCompatActivity {
 
-    private Button btnGeneratePlan;
-    private Button btnDeleteCompleted;
+    private Button btnGeneratePlan, btnDeleteCompleted;
     private ListView lvStudyPlan;
-    private ArrayAdapter<String> planAdapter;
     private ArrayList<String> studyPlan = new ArrayList<>();
     private ArrayList<Boolean> checkedItems = new ArrayList<>();
 
-    private static final String PLAN_FILENAME = "study_plan.txt";
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private SimpleDateFormat fullFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault());
+
+    private static final String PLAN_FILE = "study_plan.txt";
+    private static final String SEPARATOR = "\n---\n";  // Fixed: Added missing constant
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,269 +44,204 @@ public class StudyPlanActivity extends AppCompatActivity {
         btnDeleteCompleted = findViewById(R.id.btn_delete_completed);
         lvStudyPlan = findViewById(R.id.lv_study_plan);
 
-        planAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_checked, studyPlan) {
+        lvStudyPlan.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+
+        lvStudyPlan.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_checked, studyPlan) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 CheckedTextView view = (CheckedTextView) super.getView(position, convertView, parent);
                 view.setChecked(checkedItems.get(position));
                 return view;
             }
-        };
-        lvStudyPlan.setAdapter(planAdapter);
+        });
 
         lvStudyPlan.setOnItemClickListener((parent, view, position, id) -> {
             boolean newState = !checkedItems.get(position);
             checkedItems.set(position, newState);
-            planAdapter.notifyDataSetChanged();
+            ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
             updateDeleteButton();
-            saveStudyPlanToFile();
-            Toast.makeText(this, newState ? "Great job! Completed ✓" : "Task reopened", Toast.LENGTH_SHORT).show();
+            savePlanToFile();
+            Toast.makeText(this, newState ? "Marked as completed ✓" : "Reopened task", Toast.LENGTH_SHORT).show();
         });
 
         btnGeneratePlan.setOnClickListener(v -> generateSmartStudyPlan());
 
         btnDeleteCompleted.setOnClickListener(v -> deleteCompletedTasks());
 
-        // Fade-in
+        // Load saved plan and checked states
+        loadPlanFromFile();
+        updateDeleteButton();
+
+        // Fade-in animation
         findViewById(R.id.content_layout).setAlpha(0f);
         findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
+    }
 
-        loadStudyPlanFromFile();
-        planAdapter.notifyDataSetChanged();
-        updateDeleteButton();
+    @Override
+    protected void onPause() {
+        super.onPause();
+        savePlanToFile();  // Save whenever leaving the screen
     }
 
     private void generateSmartStudyPlan() {
         studyPlan.clear();
         checkedItems.clear();
 
-        if (ScheduleEditorActivity.classList.isEmpty() && TasksListActivity.taskList.isEmpty()) {
-            studyPlan.add("No classes or tasks added yet.\nAdd them first!");
-            checkedItems.add(false);
-        } else {
-            Map<String, List<int[]>> occupiedSlots = parseClasses();
-            List<Task> tasks = parseTasks();
+        if (TasksListActivity.taskList.isEmpty()) {
+            Toast.makeText(this, "Add some tasks first!", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-            if (tasks.isEmpty()) {
-                studyPlan.add("No weekly tasks added.\nGo to Weekly Tasks and add some!");
-                checkedItems.add(false);
-            } else {
-                tasks.sort((a, b) -> Integer.compare(b.priority, a.priority));
+        ArrayList<Task> tasks = parseTasks();
+        if (tasks.isEmpty()) {
+            Toast.makeText(this, "No valid tasks with due dates found", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-                Map<String, List<int[]>> freeSlots = findFreeSlots(occupiedSlots);
+        // Sort by priority (high first), then by due date
+        Collections.sort(tasks, (a, b) -> {
+            if (a.priority != b.priority) return Integer.compare(b.priority, a.priority);
+            return a.dueDate.compareTo(b.dueDate);
+        });
 
-                for (Task task : tasks) {
-                    boolean assigned = false;
-                    for (String day : getDayOrder()) {
-                        if (getDayOfWeekFromName(day) > getDayOfWeekFromName(task.dueDay)) continue;
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 18); // Start suggesting from 6 PM
+        cal.set(Calendar.MINUTE, 0);
 
-                        List<int[]> slots = freeSlots.getOrDefault(day, new ArrayList<>());
-                        for (int i = 0; i < slots.size(); i++) {
-                            int[] slot = slots.get(i);
-                            int duration = slot[1] - slot[0];
-                            if (duration >= task.timeNeeded) {
-                                String startTime = minutesToTime(slot[0]);
-                                String endTime = minutesToTime(slot[0] + task.timeNeeded);
-                                studyPlan.add(day + " " + startTime + " - " + endTime + "\nStudy: " + task.name + " (due " + task.dueDay + ")");
-                                checkedItems.add(false);
-                                slots.set(i, new int[]{slot[0] + task.timeNeeded, slot[1]});
-                                assigned = true;
-                                break;
-                            }
-                        }
-                        if (assigned) break;
-                    }
-                    if (!assigned) {
-                        studyPlan.add("⚠ No free slot before due date:\n" + task.name + " (" + task.timeNeeded + " mins, due " + task.dueDay + ")");
-                        checkedItems.add(false);
-                    }
-                }
+        for (Task task : tasks) {
+            Calendar taskCal = Calendar.getInstance();
+            taskCal.setTime(task.dueDate);
+
+            // Suggest study 1-3 days before due date
+            taskCal.add(Calendar.DAY_OF_YEAR, -1 - (5 - task.priority)); // Higher priority = earlier suggestion
+
+            if (taskCal.before(Calendar.getInstance())) {
+                taskCal = Calendar.getInstance(); // If overdue, suggest today
             }
-        }
 
-        if (studyPlan.isEmpty()) {
-            studyPlan.add("All tasks successfully assigned! Great planning 🎉");
+            taskCal.set(Calendar.HOUR_OF_DAY, 18 + (studyPlan.size() % 3)); // 6-8 PM slots
+            taskCal.set(Calendar.MINUTE, 0);
+
+            String planEntry = fullFormat.format(taskCal.getTime()) + " • 1 hour\n" +
+                    task.name + "\nPriority: " + task.priority + " | Due: " + dateFormat.format(task.dueDate);
+
+            studyPlan.add(planEntry);
             checkedItems.add(false);
         }
 
-        planAdapter.notifyDataSetChanged();
-        saveStudyPlanToFile();
+        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
         updateDeleteButton();
-        Toast.makeText(this, "Study Plan Generated!", Toast.LENGTH_SHORT).show();
+        savePlanToFile();
+
+        Toast.makeText(this, "Smart study plan generated!", Toast.LENGTH_SHORT).show();
     }
 
     private void deleteCompletedTasks() {
-        int removedCount = 0;
-        for (int i = studyPlan.size() - 1; i >= 0; i--) {
+        int deletedCount = 0;
+        for (int i = checkedItems.size() - 1; i >= 0; i--) {
             if (checkedItems.get(i)) {
                 studyPlan.remove(i);
                 checkedItems.remove(i);
-                removedCount++;
+                deletedCount++;
             }
         }
-        planAdapter.notifyDataSetChanged();
-        saveStudyPlanToFile();
+        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
         updateDeleteButton();
-        Toast.makeText(this, removedCount + " completed task(s) deleted", Toast.LENGTH_SHORT).show();
+        savePlanToFile();
+        Toast.makeText(this, deletedCount + " completed task(s) deleted", Toast.LENGTH_SHORT).show();
     }
 
     private void updateDeleteButton() {
-        long completedCount = checkedItems.stream().filter(b -> b).count();
-
-        if (completedCount > 0) {
-            btnDeleteCompleted.setText("Delete Completed (" + completedCount + ")");
-            btnDeleteCompleted.setVisibility(View.VISIBLE);
-        } else {
-            btnDeleteCompleted.setVisibility(View.GONE);
+        int completedCount = 0;
+        for (Boolean checked : checkedItems) {
+            if (checked) completedCount++;
         }
+        btnDeleteCompleted.setText("Delete Completed (" + completedCount + ")");
+        btnDeleteCompleted.setVisibility(completedCount > 0 ? View.VISIBLE : View.GONE);
     }
 
-    private void saveStudyPlanToFile() {
-        try {
-            FileOutputStream fos = openFileOutput(PLAN_FILENAME, MODE_PRIVATE);
-            for (int i = 0; i < studyPlan.size(); i++) {
-                String line = studyPlan.get(i) + "|||CHECKED:" + checkedItems.get(i);
-                fos.write((line + "\n").getBytes());
-            }
-            fos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void loadStudyPlanFromFile() {
-        studyPlan.clear();
-        checkedItems.clear();
-        try {
-            FileInputStream fis = openFileInput(PLAN_FILENAME);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fis));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("|||CHECKED:")) {
-                    String[] parts = line.split("\\|\\|\\|CHECKED:");
-                    studyPlan.add(parts[0]);
-                    checkedItems.add(Boolean.parseBoolean(parts[1]));
-                } else {
-                    studyPlan.add(line);
-                    checkedItems.add(false);
-                }
-            }
-            reader.close();
-        } catch (Exception e) {
-            // Normal on first launch
-        }
-    }
-
-    // ---------- PARSING METHODS (NOW INCLUDED) ----------
-
-    private Map<String, List<int[]>> parseClasses() {
-        Map<String, List<int[]>> occupied = new HashMap<>();
-        for (String entry : ScheduleEditorActivity.classList) {
-            try {
-                String[] lines = entry.split("\n");
-                if (lines.length < 2) continue;
-                String[] firstLine = lines[0].split(" \\| ");
-                if (firstLine.length < 2) continue;
-                String day = firstLine[0].trim();
-                String timeLine = lines[1].trim();
-                String[] times = timeLine.split(" - ");
-                if (times.length < 2) continue;
-                int startMin = timeToMinutes(times[0].trim());
-                int endMin = timeToMinutes(times[1].trim());
-                occupied.computeIfAbsent(day, k -> new ArrayList<>()).add(new int[]{startMin, endMin});
-            } catch (Exception ignored) {}
-        }
-        for (List<int[]> slots : occupied.values()) {
-            slots.sort((a, b) -> Integer.compare(a[0], b[0]));
-        }
-        return occupied;
-    }
-
-    private Map<String, List<int[]>> findFreeSlots(Map<String, List<int[]>> occupied) {
-        Map<String, List<int[]>> free = new HashMap<>();
-        int dayStart = 480;  // 08:00
-        int dayEnd = 1320;   // 22:00
-
-        for (String day : getDayOrder()) {
-            List<int[]> classes = occupied.getOrDefault(day, new ArrayList<>());
-            List<int[]> slots = new ArrayList<>();
-            int lastEnd = dayStart;
-
-            for (int[] cls : classes) {
-                if (cls[0] - lastEnd >= 60) {
-                    slots.add(new int[]{lastEnd, cls[0]});
-                }
-                lastEnd = Math.max(lastEnd, cls[1]);
-            }
-            if (dayEnd - lastEnd >= 60) {
-                slots.add(new int[]{lastEnd, dayEnd});
-            }
-            if (!slots.isEmpty()) {
-                free.put(day, slots);
-            }
-        }
-        return free;
-    }
-
-    private List<Task> parseTasks() {
-        List<Task> tasks = new ArrayList<>();
+    private ArrayList<Task> parseTasks() {
+        ArrayList<Task> tasks = new ArrayList<>();
         for (String entry : TasksListActivity.taskList) {
             try {
                 String[] lines = entry.split("\n");
                 if (lines.length < 2) continue;
+
                 String name = lines[0].trim();
                 String[] details = lines[1].split(" \\| ");
-                if (details.length < 3) continue;
-                String dueDay = details[0].replace("Due: ", "").trim();
-                int time = Integer.parseInt(details[1].replace("⏱ ", "").replace(" mins", "").trim());
-                int priority = Integer.parseInt(details[2].replace("Priority: ", "").trim());
-                tasks.add(new Task(name, time, priority, dueDay));
+                if (details.length < 2) continue;
+
+                String dueStr = details[0].replace("Due: ", "").trim();
+                int priority = Integer.parseInt(details[1].replace("Priority: ", "").trim());
+
+                Date dueDate = dateFormat.parse(dueStr);
+                if (dueDate != null) {
+                    tasks.add(new Task(name, priority, dueDate));
+                }
             } catch (Exception ignored) {}
         }
         return tasks;
     }
 
-    private List<String> getDayOrder() {
-        return List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+    private void savePlanToFile() {
+        try (FileOutputStream fos = openFileOutput(PLAN_FILE, MODE_PRIVATE)) {
+            for (int i = 0; i < studyPlan.size(); i++) {
+                String prefix = checkedItems.get(i) ? "DONE:" : "TODO:";
+                fos.write((prefix + studyPlan.get(i) + SEPARATOR).getBytes());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    private int timeToMinutes(String time) {
-        String[] parts = time.split(":");
-        return Integer.parseInt(parts[0]) * 60 + Integer.parseInt(parts[1]);
-    }
+    private void loadPlanFromFile() {
+        studyPlan.clear();
+        checkedItems.clear();
+        try (FileInputStream fis = openFileInput(PLAN_FILE);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("---")) {
+                    if (sb.length() > 0) {
+                        String content = sb.toString().trim();
+                        boolean isDone = content.startsWith("DONE:");
+                        if (isDone) content = content.substring(5);
+                        else if (content.startsWith("TODO:")) content = content.substring(5);
 
-    private String minutesToTime(int minutes) {
-        int h = minutes / 60;
-        int m = minutes % 60;
-        return String.format(Locale.getDefault(), "%02d:%02d", h, m);
-    }
+                        studyPlan.add(content);
+                        checkedItems.add(isDone);
+                        sb = new StringBuilder();
+                    }
+                } else {
+                    sb.append(line).append("\n");
+                }
+            }
+            // Last item
+            if (sb.length() > 0) {
+                String content = sb.toString().trim();
+                boolean isDone = content.startsWith("DONE:");
+                if (isDone) content = content.substring(5);
+                else if (content.startsWith("TODO:")) content = content.substring(5);
 
-    private int getDayOfWeekFromName(String dayName) {
-        if (dayName == null || dayName.trim().isEmpty()) return -1;
-        String normalized = dayName.trim().toLowerCase(Locale.getDefault());
-
-        if (normalized.equals("monday")) return 1;
-        if (normalized.equals("tuesday")) return 2;
-        if (normalized.equals("wednesday")) return 3;
-        if (normalized.equals("thursday")) return 4;
-        if (normalized.equals("friday")) return 5;
-        if (normalized.equals("saturday")) return 6;
-        if (normalized.equals("sunday")) return 0;
-
-        return -1;
+                studyPlan.add(content);
+                checkedItems.add(isDone);
+            }
+        } catch (Exception e) {
+            // No saved plan yet
+        }
+        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
     }
 
     private static class Task {
         String name;
-        int timeNeeded;
         int priority;
-        String dueDay;
+        Date dueDate;
 
-        Task(String name, int timeNeeded, int priority, String dueDay) {
+        Task(String name, int priority, Date dueDate) {
             this.name = name;
-            this.timeNeeded = timeNeeded;
             this.priority = priority;
-            this.dueDay = dueDay;
+            this.dueDate = dueDate;
         }
     }
 }
