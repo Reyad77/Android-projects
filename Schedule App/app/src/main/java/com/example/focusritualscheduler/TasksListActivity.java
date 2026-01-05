@@ -1,5 +1,6 @@
 package com.example.focusritualscheduler;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -23,7 +23,7 @@ import java.util.Locale;
 
 public class TasksListActivity extends AppCompatActivity {
 
-    private EditText etTaskName, etPriority, etDueDate;  // Changed to full date
+    private EditText etTaskName, etPriority, etDueDate;
     private Button btnAddTask;
     private ListView lvTasks;
 
@@ -33,6 +33,9 @@ public class TasksListActivity extends AppCompatActivity {
     private static final String FILENAME = "tasks.txt";
     private static final String SEPARATOR = "\n---\n";
 
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+    private Calendar selectedCalendar = Calendar.getInstance();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,12 +43,15 @@ public class TasksListActivity extends AppCompatActivity {
 
         etTaskName = findViewById(R.id.et_task_name);
         etPriority = findViewById(R.id.et_priority);
-        etDueDate = findViewById(R.id.et_due_day);  // Now due date as YYYY-MM-DD
+        etDueDate = findViewById(R.id.et_due_day);
         btnAddTask = findViewById(R.id.btn_add_task);
         lvTasks = findViewById(R.id.lv_tasks);
 
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, taskList);
         lvTasks.setAdapter(adapter);
+
+        // Open calendar when tapping due date field
+        etDueDate.setOnClickListener(v -> showDatePicker(etDueDate));
 
         btnAddTask.setOnClickListener(v -> addTask());
 
@@ -73,6 +79,21 @@ public class TasksListActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
     }
 
+    private void showDatePicker(EditText editText) {
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    selectedCalendar.set(year, month, dayOfMonth);
+                    editText.setText(dateFormat.format(selectedCalendar.getTime()));
+                },
+                selectedCalendar.get(Calendar.YEAR),
+                selectedCalendar.get(Calendar.MONTH),
+                selectedCalendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000); // No past dates
+        datePickerDialog.show();
+    }
+
     private void addTask() {
         String name = etTaskName.getText().toString().trim();
         String priorityStr = etPriority.getText().toString().trim();
@@ -86,11 +107,6 @@ public class TasksListActivity extends AppCompatActivity {
         int priority = Integer.parseInt(priorityStr);
         if (priority < 1 || priority > 5) {
             Toast.makeText(this, "Priority 1-5", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!isValidDate(dueDate)) {
-            Toast.makeText(this, "Invalid due date (YYYY-MM-DD)", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -120,6 +136,9 @@ public class TasksListActivity extends AppCompatActivity {
         editDueDate.setText(dueDate);
         editPriority.setText(priorityStr);
 
+        // Make edit due date field open calendar
+        editDueDate.setOnClickListener(v -> showDatePicker(editDueDate));
+
         new AlertDialog.Builder(this)
                 .setTitle("Edit Task")
                 .setView(dialogView)
@@ -136,11 +155,6 @@ public class TasksListActivity extends AppCompatActivity {
                     int newPriority = Integer.parseInt(newPriorityStr);
                     if (newPriority < 1 || newPriority > 5) {
                         Toast.makeText(this, "Priority 1-5", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    if (!isValidDate(newDueDate)) {
-                        Toast.makeText(this, "Invalid due date (YYYY-MM-DD)", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -191,18 +205,7 @@ public class TasksListActivity extends AppCompatActivity {
                 taskList.add(sb.toString().trim());
             }
         } catch (Exception e) {
-            // No file yet
-        }
-    }
-
-    private boolean isValidDate(String dateStr) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        sdf.setLenient(false);
-        try {
-            sdf.parse(dateStr);
-            return true;
-        } catch (ParseException e) {
-            return false;
+            // No file
         }
     }
 }
