@@ -4,16 +4,14 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckedTextView;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import android.view.ViewGroup;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,11 +27,14 @@ public class StudyPlanActivity extends AppCompatActivity {
     private ArrayList<String> studyPlan = new ArrayList<>();
     private ArrayList<Boolean> checkedItems = new ArrayList<>();
 
+    private ArrayAdapter<String> planAdapter;
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-    private SimpleDateFormat fullFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault());
+    private SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault());
+    private SimpleDateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
 
     private static final String PLAN_FILE = "study_plan.txt";
-    private static final String SEPARATOR = "\n---\n";  // Fixed: Added missing constant
+    private static final String SEPARATOR = "\n---\n";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,143 +45,153 @@ public class StudyPlanActivity extends AppCompatActivity {
         btnDeleteCompleted = findViewById(R.id.btn_delete_completed);
         lvStudyPlan = findViewById(R.id.lv_study_plan);
 
+        // Use built-in layout that works perfectly with Material themes
+        planAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_multiple_choice, studyPlan);
+        lvStudyPlan.setAdapter(planAdapter);
         lvStudyPlan.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
-        lvStudyPlan.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_checked, studyPlan) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                CheckedTextView view = (CheckedTextView) super.getView(position, convertView, parent);
-                view.setChecked(checkedItems.get(position));
-                return view;
+        lvStudyPlan.setOnItemClickListener((parent, view, position, id) -> {
+            if (position < checkedItems.size()) {
+                checkedItems.set(position, !checkedItems.get(position));
+                updateDeleteButton();
+                savePlanToFile();
             }
         });
 
-        lvStudyPlan.setOnItemClickListener((parent, view, position, id) -> {
-            boolean newState = !checkedItems.get(position);
-            checkedItems.set(position, newState);
-            ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
-            updateDeleteButton();
-            savePlanToFile();
-            Toast.makeText(this, newState ? "Marked as completed ✓" : "Reopened task", Toast.LENGTH_SHORT).show();
-        });
+        btnGeneratePlan.setOnClickListener(v -> generatePlan());
+        btnDeleteCompleted.setOnClickListener(v -> deleteCompleted());
 
-        btnGeneratePlan.setOnClickListener(v -> generateSmartStudyPlan());
-
-        btnDeleteCompleted.setOnClickListener(v -> deleteCompletedTasks());
-
-        // Load saved plan and checked states
         loadPlanFromFile();
         updateDeleteButton();
 
         // Fade-in animation
-        findViewById(R.id.content_layout).setAlpha(0f);
-        findViewById(R.id.content_layout).animate().alpha(1f).setDuration(800).start();
+        View content = findViewById(R.id.content_layout);
+        if (content != null) {
+            content.setAlpha(0f);
+            content.animate().alpha(1f).setDuration(800).start();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        savePlanToFile();  // Save whenever leaving the screen
+        savePlanToFile();
     }
 
-    private void generateSmartStudyPlan() {
+    private void generatePlan() {
+        ArrayList<String> tasks = new ArrayList<>();
+        if (TasksListActivity.taskList != null) {
+            tasks.addAll(TasksListActivity.taskList);
+        }
+
+        if (tasks.isEmpty()) {
+            Toast.makeText(this, "Add some tasks in 'Weekly Tasks' first!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         studyPlan.clear();
         checkedItems.clear();
 
-        if (TasksListActivity.taskList.isEmpty()) {
-            Toast.makeText(this, "Add some tasks first!", Toast.LENGTH_LONG).show();
-            return;
-        }
+        TreeMap<Date, String> freeSlots = getFreeSlots();
+        ArrayList<Task> taskObjects = parseTasks(tasks);
 
-        ArrayList<Task> tasks = parseTasks();
-        if (tasks.isEmpty()) {
-            Toast.makeText(this, "No valid tasks with due dates found", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        // Sort by priority (high first), then by due date
-        Collections.sort(tasks, (a, b) -> {
-            if (a.priority != b.priority) return Integer.compare(b.priority, a.priority);
-            return a.dueDate.compareTo(b.dueDate);
+        Collections.sort(taskObjects, (a, b) -> {
+            int dateCompare = a.dueDate.compareTo(b.dueDate);
+            if (dateCompare != 0) return dateCompare;
+            return Integer.compare(b.priority, a.priority);
         });
 
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 18); // Start suggesting from 6 PM
-        cal.set(Calendar.MINUTE, 0);
+        for (Task task : taskObjects) {
+            boolean assigned = false;
+            for (Date slotStart : new ArrayList<>(freeSlots.keySet())) {
+                if (!slotStart.after(task.dueDate)) {
+                    Calendar endCal = Calendar.getInstance();
+                    endCal.setTime(slotStart);
+                    endCal.add(Calendar.HOUR_OF_DAY, 1);
 
-        for (Task task : tasks) {
-            Calendar taskCal = Calendar.getInstance();
-            taskCal.setTime(task.dueDate);
+                    String dayLine = dayFormat.format(slotStart);
+                    String timeRange = timeFormat.format(slotStart) + " - " + timeFormat.format(endCal.getTime());
 
-            // Suggest study 1-3 days before due date
-            taskCal.add(Calendar.DAY_OF_YEAR, -1 - (5 - task.priority)); // Higher priority = earlier suggestion
+                    String planEntry = dayLine + "\n" + timeRange + "\n" + task.name +
+                            "\nPriority: " + task.priority + " | Due: " + dateFormat.format(task.dueDate);
 
-            if (taskCal.before(Calendar.getInstance())) {
-                taskCal = Calendar.getInstance(); // If overdue, suggest today
+                    studyPlan.add(planEntry);
+                    checkedItems.add(false);
+                    freeSlots.remove(slotStart);
+                    assigned = true;
+                    break;
+                }
             }
-
-            taskCal.set(Calendar.HOUR_OF_DAY, 18 + (studyPlan.size() % 3)); // 6-8 PM slots
-            taskCal.set(Calendar.MINUTE, 0);
-
-            String planEntry = fullFormat.format(taskCal.getTime()) + " • 1 hour\n" +
-                    task.name + "\nPriority: " + task.priority + " | Due: " + dateFormat.format(task.dueDate);
-
-            studyPlan.add(planEntry);
-            checkedItems.add(false);
+            if (!assigned) {
+                studyPlan.add("⚠️ No free slot found:\n" + task.name +
+                        "\nPriority: " + task.priority + " | Due: " + dateFormat.format(task.dueDate));
+                checkedItems.add(false);
+            }
         }
 
-        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
+        planAdapter.notifyDataSetChanged();
         updateDeleteButton();
         savePlanToFile();
-
-        Toast.makeText(this, "Smart study plan generated!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Study plan generated!", Toast.LENGTH_SHORT).show();
     }
 
-    private void deleteCompletedTasks() {
-        int deletedCount = 0;
+    private void deleteCompleted() {
         for (int i = checkedItems.size() - 1; i >= 0; i--) {
             if (checkedItems.get(i)) {
                 studyPlan.remove(i);
                 checkedItems.remove(i);
-                deletedCount++;
             }
         }
-        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
+        planAdapter.notifyDataSetChanged();
         updateDeleteButton();
         savePlanToFile();
-        Toast.makeText(this, deletedCount + " completed task(s) deleted", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Completed tasks deleted!", Toast.LENGTH_SHORT).show();
     }
 
     private void updateDeleteButton() {
-        int completedCount = 0;
-        for (Boolean checked : checkedItems) {
-            if (checked) completedCount++;
+        int count = 0;
+        for (boolean checked : checkedItems) {
+            if (checked) count++;
         }
-        btnDeleteCompleted.setText("Delete Completed (" + completedCount + ")");
-        btnDeleteCompleted.setVisibility(completedCount > 0 ? View.VISIBLE : View.GONE);
+        if (count > 0) {
+            btnDeleteCompleted.setText("Delete Completed (" + count + ")");
+            btnDeleteCompleted.setVisibility(View.VISIBLE);
+        } else {
+            btnDeleteCompleted.setVisibility(View.GONE);
+        }
     }
 
-    private ArrayList<Task> parseTasks() {
-        ArrayList<Task> tasks = new ArrayList<>();
-        for (String entry : TasksListActivity.taskList) {
+    private TreeMap<Date, String> getFreeSlots() {
+        TreeMap<Date, String> slots = new TreeMap<>();
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 18);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        for (int i = 0; i < 21; i++) {
+            slots.put((Date) cal.getTime().clone(), "Evening Study");
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+        }
+        return slots;
+    }
+
+    private ArrayList<Task> parseTasks(ArrayList<String> tasks) {
+        ArrayList<Task> taskObjects = new ArrayList<>();
+        for (String entry : tasks) {
             try {
                 String[] lines = entry.split("\n");
                 if (lines.length < 2) continue;
-
                 String name = lines[0].trim();
                 String[] details = lines[1].split(" \\| ");
                 if (details.length < 2) continue;
-
                 String dueStr = details[0].replace("Due: ", "").trim();
                 int priority = Integer.parseInt(details[1].replace("Priority: ", "").trim());
-
                 Date dueDate = dateFormat.parse(dueStr);
-                if (dueDate != null) {
-                    tasks.add(new Task(name, priority, dueDate));
-                }
+                taskObjects.add(new Task(name, priority, dueDate));
             } catch (Exception ignored) {}
         }
-        return tasks;
+        return taskObjects;
     }
 
     private void savePlanToFile() {
@@ -206,10 +217,8 @@ public class StudyPlanActivity extends AppCompatActivity {
                     if (sb.length() > 0) {
                         String content = sb.toString().trim();
                         boolean isDone = content.startsWith("DONE:");
-                        if (isDone) content = content.substring(5);
-                        else if (content.startsWith("TODO:")) content = content.substring(5);
-
-                        studyPlan.add(content);
+                        String text = isDone ? content.substring(5) : content.substring(5);
+                        studyPlan.add(text);
                         checkedItems.add(isDone);
                         sb = new StringBuilder();
                     }
@@ -217,20 +226,17 @@ public class StudyPlanActivity extends AppCompatActivity {
                     sb.append(line).append("\n");
                 }
             }
-            // Last item
             if (sb.length() > 0) {
                 String content = sb.toString().trim();
                 boolean isDone = content.startsWith("DONE:");
-                if (isDone) content = content.substring(5);
-                else if (content.startsWith("TODO:")) content = content.substring(5);
-
-                studyPlan.add(content);
+                String text = isDone ? content.substring(5) : content.substring(5);
+                studyPlan.add(text);
                 checkedItems.add(isDone);
             }
         } catch (Exception e) {
             // No saved plan yet
         }
-        ((ArrayAdapter<?>) lvStudyPlan.getAdapter()).notifyDataSetChanged();
+        planAdapter.notifyDataSetChanged();
     }
 
     private static class Task {

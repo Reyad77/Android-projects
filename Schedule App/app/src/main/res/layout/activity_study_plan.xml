@@ -63,7 +63,7 @@
                 android:textStyle="bold"
                 android:textColor="#1565C0"
                 android:backgroundTint="#4FC3F7"
-                android:layout_marginBottom="30dp"
+                android:layout_marginBottom="40dp"
                 style="?android:attr/borderlessButtonStyle" />
 
             <TextView
@@ -73,21 +73,32 @@
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#1565C0"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="20dp" />
 
-            <!-- Smart Delete Completed Button -->
-            <ListView
-                android:id="@+id/lv_study_plan"
+            <!-- Study Plan List with More Space -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
-                android:layout_height="270dp"
-                android:layout_marginBottom="20dp"
-                android:background="#FFFFFF"
-                android:choiceMode="multipleChoice"
-                android:divider="#E0E0E0"
-                android:dividerHeight="1dp"
-                android:padding="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="#FFFFFF">
 
-            <Button
+                <ListView
+                    android:id="@+id/lv_study_plan"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginBottom="20dp"
+                    android:minHeight="400dp"
+                    android:background="#FFFFFF"
+                    android:choiceMode="multipleChoice"
+                    android:divider="#E0E0E0"
+                    android:dividerHeight="16dp"
+                    android:padding="16dp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Delete Button - Hidden until items are checked -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_delete_completed"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
@@ -95,7 +106,11 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
-                android:backgroundTint="#D32F2F"/>
+                android:backgroundTint="#D32F2F"
+                app:cornerRadius="36dp"
+                android:visibility="gone"
+                app:iconGravity="textStart"
+                style="@style/Widget.MaterialComponents.Button" />
 
         </LinearLayout>
     </ScrollView>
