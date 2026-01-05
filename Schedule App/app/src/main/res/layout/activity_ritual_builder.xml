@@ -19,7 +19,7 @@
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#B3FFFFFF"
+        android:background="#8000"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,15 +44,15 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Build Focus Ritual"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="#1565C0"
                 android:layout_marginBottom="40dp"
-                android:shadowColor="#40000000"
+                android:shadowColor="#000000"
                 android:shadowDx="2"
                 android:shadowDy="2"
-                android:shadowRadius="4" />
+                android:shadowRadius="4"
+                android:text="TO-DO LIST"
+                android:textColor="#ffffff"
+                android:textSize="32sp"
+                android:textStyle="bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -78,35 +78,37 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_add_step"
                 android:layout_width="match_parent"
                 android:layout_height="72dp"
                 android:text="Add Step"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#1565C0"
-                android:backgroundTint="#4FC3F7"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#000000"
+                app:cornerRadius="36dp"
                 android:layout_marginBottom="30dp"
-                style="?android:attr/borderlessButtonStyle" />
+                style="@style/Widget.MaterialComponents.Button" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Your Ritual Steps"
+                android:text="YOUR PLANS"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#1565C0"
-                android:layout_marginBottom="16dp" />
+                android:textColor="#ffffff"
+                android:layout_marginBottom="16dp"
+                android:shadowColor="#000000"/>
 
             <ListView
                 android:id="@+id/lv_ritual_steps"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="300dp"
                 android:background="#FFFFFF"
-                android:padding="16dp"
                 android:divider="#E0E0E0"
-                android:dividerHeight="1dp" />
+                android:dividerHeight="1dp"
+                android:padding="16dp" />
 
         </LinearLayout>
     </ScrollView>
