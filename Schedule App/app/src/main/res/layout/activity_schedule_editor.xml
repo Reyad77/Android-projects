@@ -145,7 +145,7 @@
                 android:background="#FFFFFF"
                 android:clipToPadding="false"
                 android:divider="#000000"
-                android:dividerHeight="16dp"
+                android:dividerHeight="10dp"
                 android:minHeight="200dp"
                 android:padding="10dp" />
 
